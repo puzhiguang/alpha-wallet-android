@@ -11,6 +11,9 @@ import android.security.keystore.*;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.alphawallet.app.entity.WalletType;
+import com.alphawallet.app.util.Utils;
 import com.crashlytics.android.Crashlytics;
 import com.alphawallet.app.BuildConfig;
 
@@ -38,9 +41,16 @@ import javax.crypto.spec.GCMParameterSpec;
 import java.io.*;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static android.os.VibrationEffect.DEFAULT_AMPLITUDE;
 import static com.alphawallet.app.entity.Operation.*;
+import static com.alphawallet.app.entity.ServiceErrorException.ServiceErrorCode.FAIL_TO_SAVE_IV_FILE;
+import static com.alphawallet.app.entity.ServiceErrorException.ServiceErrorCode.KEY_STORE_ERROR;
 import static com.alphawallet.app.entity.tokenscript.TokenscriptFunction.ZERO_ADDRESS;
 import static com.alphawallet.app.service.KeystoreAccountService.KEYSTORE_FOLDER;
 import static com.alphawallet.app.service.LegacyKeystore.getLegacyPassword;
@@ -248,6 +258,7 @@ public class KeyService implements AuthenticationCallback, PinAuthenticationCall
         switch (wallet.type)
         {
             case KEYSTORE_LEGACY:
+                //check it's actually a legacy and doesn't require signing first
                 signCallback.GotAuthorisation(true); //Legacy keys don't require authentication
                 break;
             case KEYSTORE:
@@ -615,7 +626,7 @@ public class KeyService implements AuthenticationCallback, PinAuthenticationCall
             {
                 deleteKey(currentWallet.address);
                 throw new ServiceErrorException(
-                        ServiceErrorException.FAIL_TO_SAVE_IV_FILE,
+                        FAIL_TO_SAVE_IV_FILE,
                         "Failed to saveTokens the iv file for: " + currentWallet.address + "iv");
             }
 
@@ -629,7 +640,7 @@ public class KeyService implements AuthenticationCallback, PinAuthenticationCall
             {
                 deleteKey(currentWallet.address);
                 throw new ServiceErrorException(
-                        ServiceErrorException.KEY_STORE_ERROR,
+                        KEY_STORE_ERROR,
                         "Failed to saveTokens the file for: " + currentWallet.address);
             }
 
@@ -759,6 +770,13 @@ public class KeyService implements AuthenticationCallback, PinAuthenticationCall
             default:
                 dialogTitle = context.getString(R.string.unlock_private_key);
                 break;
+        }
+
+        //see if unlock is required
+        if (!requiresUnlock())
+        {
+            signCallback.GotAuthorisation(true);
+            return;
         }
 
         signDialog = new SignTransactionDialog(activity, operation, dialogTitle, null);
@@ -1037,6 +1055,28 @@ public class KeyService implements AuthenticationCallback, PinAuthenticationCall
         }
         catch (ServiceErrorException e)
         {
+            switch (e.code)
+            {
+                case UNKNOWN_ERROR:
+                    break;
+                case INVALID_DATA:
+                    break;
+                case KEY_STORE_ERROR:
+                    break;
+                case FAIL_TO_SAVE_IV_FILE:
+                    break;
+                case KEY_STORE_SECRET:
+                    break;
+                case USER_NOT_AUTHENTICATED:
+                    //user not authenticated - need to authenticate the user first
+                    break;
+                case KEY_IS_GONE:
+                    break;
+                case IV_OR_ALIAS_NO_ON_DISK:
+                    break;
+                case INVALID_KEY:
+                    break;
+            }
             //Legacy keystore error
             if (!BuildConfig.DEBUG) Crashlytics.logException(e);
             e.printStackTrace();
@@ -1197,6 +1237,170 @@ public class KeyService implements AuthenticationCallback, PinAuthenticationCall
                     break;
             }
         }
+    }
+
+    public boolean detectHDWallets(List<Wallet> walletList)
+    {
+        Map<String, Wallet> walletMap = new HashMap<>();
+        boolean onlyHasLegacy = true;
+        boolean hasChanges = false;
+        for (Wallet w : walletList)
+        {
+            walletMap.put(w.address, w);
+            if (onlyHasLegacy && w.type == WalletType.KEYSTORE)
+            {
+                onlyHasLegacy = false;
+            }
+        }
+
+        if (onlyHasLegacy)
+        {
+            hasChanges = CheckLegacyWallets(walletList);
+        }
+
+        //iterate the detected keys
+        try
+        {
+            KeyStore keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
+            keyStore.load(null);
+            Enumeration<String> keys = keyStore.aliases();
+
+            while (keys.hasMoreElements())
+            {
+                String thisKey = keys.nextElement();
+                System.out.println("Key: " + thisKey);
+                if (!walletMap.containsKey(thisKey) && Utils.isAddressValid(thisKey))
+                {
+                    //is it Auth Locked?
+                    Wallet wallet = checkRestoreWallet(thisKey);
+                    if (wallet != null)
+                    {
+                        walletList.add(wallet);
+                        hasChanges = true;
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        return hasChanges;
+    }
+
+    private boolean CheckLegacyWallets(List<Wallet> walletList)
+    {
+        boolean hasChanges = false;
+        //double check for consistency
+        List<Wallet> removalList = new ArrayList<>();
+        for (Wallet w : walletList)
+        {
+            if (w.type == WalletType.KEYSTORE_LEGACY)
+            {
+                try
+                {
+                    currentWallet = new Wallet(w.address);
+                    getLegacyPassword(context, currentWallet.address);
+                    System.out.println("Is OK");
+                }
+                catch (ServiceErrorException ke)
+                {
+                    switch (ke.code)
+                    {
+                        case UNKNOWN_ERROR:
+                            break;
+                        case KEY_STORE_ERROR:
+                            break;
+                        case FAIL_TO_SAVE_IV_FILE:
+                            break;
+                        case KEY_STORE_SECRET:
+                            break;
+                        case USER_NOT_AUTHENTICATED:
+                            //key is authenticated, must be new style
+                            w.type = WalletType.KEYSTORE;
+                            w.lastBackupTime = System.currentTimeMillis();
+                            if (hasStrongbox()) w.authLevel = AuthenticationLevel.STRONGBOX_AUTHENTICATION;
+                            else w.authLevel = AuthenticationLevel.TEE_AUTHENTICATION;
+                            hasChanges = true;
+                            break;
+                        case INVALID_KEY:
+                        case KEY_IS_GONE:
+                        case INVALID_DATA:
+                        case IV_OR_ALIAS_NO_ON_DISK:
+                            //need to delete this data
+                            deleteKey(w.address);
+                            removalList.add(w);
+                            hasChanges = true;
+                            break;
+                    }
+                    ke.printStackTrace();
+                    System.out.println("KSE: " + ke.code);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        for (Wallet w : removalList) walletList.remove(w);
+        return hasChanges;
+    }
+
+    private boolean requiresUnlock()
+    {
+        try
+        {
+            unpackMnemonic();
+        }
+        catch (UserNotAuthenticatedException e)
+        {
+            return true;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private Wallet checkRestoreWallet(String keyStore)
+    {
+        Wallet wallet = null;
+        try
+        {
+            currentWallet = new Wallet(keyStore);
+            String mnemonic = unpackMnemonic();
+
+            //no password protection
+            wallet = new Wallet(keyStore);
+            if (hasStrongbox()) wallet.authLevel = AuthenticationLevel.STRONGBOX_NO_AUTHENTICATION;
+            else wallet.authLevel = AuthenticationLevel.TEE_NO_AUTHENTICATION;
+            wallet.type = WalletType.HDKEY;
+        }
+        catch (UserNotAuthenticatedException e)
+        {
+            wallet = new Wallet(keyStore);
+            if (hasStrongbox()) wallet.authLevel = AuthenticationLevel.STRONGBOX_AUTHENTICATION;
+            else wallet.authLevel = AuthenticationLevel.TEE_AUTHENTICATION;
+            wallet.lastBackupTime = System.currentTimeMillis();
+            wallet.type = WalletType.HDKEY;
+        }
+        catch (KeyServiceException e)
+        {
+            deleteKey(keyStore);
+            e.printStackTrace();
+        }
+        catch (Exception e)
+        {
+            deleteKey(keyStore);
+            e.printStackTrace();
+            //
+        }
+
+        return wallet;
     }
 
     public static boolean hasStrongbox()

@@ -314,15 +314,15 @@ public class WalletsViewModel extends BaseViewModel
     private void storeWallets(Wallet[] wallets)
     {
         //write wallets to DB
-        disposable = fetchWalletsInteract.storeWallets(wallets, currentNetwork.isMainNetwork)
+        disposable = fetchWalletsInteract.storeWallets(wallets)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::onStored, this::onError);
     }
 
-    private void onStored(Integer count)
+    private void onStored(Wallet[] wallets)
     {
-        Log.d(TAG, "Stored " + count + " Wallets");
+        Log.d(TAG, "Stored " + wallets.length + " Wallets");
     }
 
     private Observable<List<Wallet>> fetchWalletList(Wallet[] wallets)

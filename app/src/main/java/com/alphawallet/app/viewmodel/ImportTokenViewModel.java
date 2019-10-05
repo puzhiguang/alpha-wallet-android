@@ -53,6 +53,7 @@ import com.alphawallet.token.entity.TicketRange;
 import com.alphawallet.token.tools.ParseMagicLink;
 import com.alphawallet.app.service.KeyService;
 
+import static com.alphawallet.app.C.ErrorCode.ALREADY_ADDED;
 import static com.alphawallet.token.tools.ParseMagicLink.*;
 import static com.alphawallet.app.entity.MagicLinkParcel.generateReverseTradeData;
 
@@ -444,17 +445,7 @@ public class ImportTokenViewModel extends BaseViewModel
     }
 
     public void onTransactionError(Throwable throwable) {
-        if (throwable.getCause() instanceof ServiceErrorException)
-        {
-            if (((ServiceErrorException) throwable.getCause()).code == C.ErrorCode.ALREADY_ADDED)
-            {
-                txError.postValue(new ErrorEnvelope(C.ErrorCode.ALREADY_ADDED, null));
-            }
-        }
-        else
-        {
-            txError.postValue(new ErrorEnvelope(C.ErrorCode.UNKNOWN, throwable.getMessage()));
-        }
+        txError.postValue(new ErrorEnvelope(C.ErrorCode.UNKNOWN, throwable.getMessage()));
     }
 
     public void performImport()
