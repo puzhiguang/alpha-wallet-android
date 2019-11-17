@@ -60,6 +60,7 @@ public class TransferTicketDetailViewModel extends BaseViewModel {
     private final GasService gasService;
     private final ConfirmationRouter confirmationRouter;
     private final ENSInteract ensInteract;
+    private final TokensService tokensService;
 
     private ParseMagicLink parser;
     private Token token;
@@ -75,7 +76,8 @@ public class TransferTicketDetailViewModel extends BaseViewModel {
                                   AssetDefinitionService assetDefinitionService,
                                   GasService gasService,
                                   ConfirmationRouter confirmationRouter,
-                                  ENSInteract ensInteract) {
+                                  ENSInteract ensInteract,
+                                  TokensService tokensService) {
         this.genericWalletInteract = genericWalletInteract;
         this.keyService = keyService;
         this.createTransactionInteract = createTransactionInteract;
@@ -86,6 +88,7 @@ public class TransferTicketDetailViewModel extends BaseViewModel {
         this.gasService = gasService;
         this.confirmationRouter = confirmationRouter;
         this.ensInteract = ensInteract;
+        this.tokensService = tokensService;
     }
 
     public LiveData<Wallet> defaultWallet() {
@@ -241,6 +244,11 @@ public class TransferTicketDetailViewModel extends BaseViewModel {
     public AssetDefinitionService getAssetDefinitionService()
     {
         return assetDefinitionService;
+    }
+
+    public TokensService getTokensService()
+    {
+        return tokensService;
     }
 
     public void showAssets(Context ctx, Ticket ticket, boolean isClearStack)

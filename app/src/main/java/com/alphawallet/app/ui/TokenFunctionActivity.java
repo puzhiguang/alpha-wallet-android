@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.alphawallet.app.entity.StandardFunctionInterface;
+import com.alphawallet.app.util.Utils;
 import com.alphawallet.app.web3.Web3TokenView;
 import com.alphawallet.app.web3.entity.PageReadyCallback;
 
@@ -126,13 +127,13 @@ public class TokenFunctionActivity extends BaseActivity implements StandardFunct
     @Override
     public void sellTicketRouter(List<BigInteger> selection)
     {
-        viewModel.openUniversalLink(this, token, token.intArrayToString(idList, false));
+        viewModel.openUniversalLink(this, token, Utils.intArrayToString(idList, false));
     }
 
     @Override
     public void showTransferToken(List<BigInteger> selection)
     {
-        viewModel.showTransferToken(this, token, token.intArrayToString(idList, false));
+        viewModel.showTransferToken(this, token, Utils.intArrayToString(idList, false));
     }
 
     @Override

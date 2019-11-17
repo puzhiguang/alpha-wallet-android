@@ -1093,7 +1093,7 @@ public class AssetDefinitionService implements ParseResult, AttributeInterface
 
         tokenLocalSource.saveToken(new Wallet(token.getWallet()), newToken)
                 .subscribeOn(Schedulers.io())
-                .subscribe(tokensService::addToken).isDisposed();
+                .subscribe(tokensService::addTokenMeta).isDisposed();
     }
 
 

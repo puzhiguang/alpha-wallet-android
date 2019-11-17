@@ -6,6 +6,7 @@ import com.alphawallet.app.repository.EthereumNetworkRepositoryType;
 import com.alphawallet.app.repository.WalletRepositoryType;
 import com.alphawallet.app.router.RedeemSignatureDisplayRouter;
 import com.alphawallet.app.service.AssetDefinitionService;
+import com.alphawallet.app.service.TokensService;
 import com.alphawallet.app.viewmodel.RedeemAssetSelectViewModelFactory;
 
 import dagger.Module;
@@ -23,10 +24,11 @@ public class RedeemAssetSelectModule
             FindDefaultNetworkInteract findDefaultNetworkInteract,
             GenericWalletInteract genericWalletInteract,
             RedeemSignatureDisplayRouter redeemSignatureDisplayRouter,
-            AssetDefinitionService assetDefinitionService) {
+            AssetDefinitionService assetDefinitionService,
+            TokensService tokensService) {
 
         return new RedeemAssetSelectViewModelFactory(
-                genericWalletInteract, findDefaultNetworkInteract, redeemSignatureDisplayRouter, assetDefinitionService);
+                genericWalletInteract, findDefaultNetworkInteract, redeemSignatureDisplayRouter, assetDefinitionService, tokensService);
     }
 
     @Provides

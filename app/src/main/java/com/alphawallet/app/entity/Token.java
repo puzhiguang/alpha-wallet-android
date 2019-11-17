@@ -316,34 +316,6 @@ public class Token implements Parcelable
         return sb.toString();
     }
 
-    /**
-     * Produce a string CSV of integer IDs given an input list of values
-     * @param idList
-     * @param keepZeros
-     * @return
-     */
-    public String intArrayToString(List<BigInteger> idList, boolean keepZeros)
-    {
-        if (idList == null) return "";
-        String displayIDs = "";
-        boolean first = true;
-        StringBuilder sb = new StringBuilder();
-        for (BigInteger id : idList)
-        {
-            if (!keepZeros && id.compareTo(BigInteger.ZERO) == 0) continue;
-            if (!first)
-            {
-                sb.append(",");
-            }
-            first = false;
-
-            sb.append(Numeric.toHexStringNoPrefix(id));
-            displayIDs = sb.toString();
-        }
-
-        return displayIDs;
-    }
-
     public List<Integer> stringIntsToIntegerList(String userList)
     {
         List<Integer> idList = new ArrayList<>();

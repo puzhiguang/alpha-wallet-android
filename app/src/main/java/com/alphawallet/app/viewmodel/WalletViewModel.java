@@ -7,7 +7,9 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.alphawallet.app.entity.TokenMeta;
 import com.alphawallet.app.entity.VisibilityFilter;
+import com.alphawallet.app.repository.EthereumNetworkBase;
 import com.alphawallet.app.repository.EthereumNetworkRepository;
 import com.crashlytics.android.Crashlytics;
 import com.alphawallet.app.BuildConfig;
@@ -40,6 +42,7 @@ import com.alphawallet.app.service.TokensService;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -53,9 +56,9 @@ public class WalletViewModel extends BaseViewModel
     private static final int OPENSEA_RINKEBY_CHECK = 3; //check Rinkeby opensea once per XX opensea checks (ie if interval time is 25 and rinkeby check is 1 in 6, rinkeby refresh time is once per 300 seconds).
     public static double VALUE_THRESHOLD = 200.0; //$200 USD value is difference between red and grey backup warnings
 
-    private final MutableLiveData<Token[]> tokens = new MutableLiveData<>();
+    private final MutableLiveData<TokenMeta[]> tokens = new MutableLiveData<>();
     private final MutableLiveData<BigDecimal> total = new MutableLiveData<>();
-    private final MutableLiveData<Token> tokenUpdate = new MutableLiveData<>();
+    private final MutableLiveData<TokenMeta> tokenUpdate = new MutableLiveData<>();
     private final MutableLiveData<Boolean> tokensReady = new MutableLiveData<>();
     private final MutableLiveData<GenericWalletInteract.BackupLevel> backupEvent = new MutableLiveData<>();
 
@@ -119,13 +122,13 @@ public class WalletViewModel extends BaseViewModel
         this.ethereumNetworkRepository = ethereumNetworkRepository;
     }
 
-    public LiveData<Token[]> tokens() {
+    public LiveData<TokenMeta[]> tokens() {
         return tokens;
     }
     public LiveData<BigDecimal> total() {
         return total;
     }
-    public LiveData<Token> tokenUpdate() { return tokenUpdate; }
+    public LiveData<TokenMeta> tokenUpdate() { return tokenUpdate; }
     public LiveData<Boolean> tokensReady() { return tokensReady; }
     public LiveData<GenericWalletInteract.BackupLevel> backupEvent() { return backupEvent; }
 
@@ -176,10 +179,15 @@ public class WalletViewModel extends BaseViewModel
             openSeaCheckCounter = 0;
             backupCheckVal = 0;
             tokensService.setCurrentAddress(currentWallet.address);
-            updateTokens = fetchTokensInteract.fetchStoredWithEth(currentWallet)
+            updateTokens = tokensService.loadTokens(currentWallet)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(this::onTokens, this::onTokenFetchError, this::startBalanceUpdate);
+                    .subscribe(this::onTokensMeta, this::onTokenFetchError);
+
+//            updateTokens = fetchTokensInteract.fetchStoredWithEth(currentWallet)
+//                    .subscribeOn(Schedulers.newThread())
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(this::onTokens, this::onTokenFetchError, this::startBalanceUpdate);
         }
         else
         {
@@ -188,17 +196,28 @@ public class WalletViewModel extends BaseViewModel
         }
     }
 
-    private void onTokens(Token[] cachedTokens)
+    private void onTokensMeta(List<TokenMeta> cachedTokens)
     {
-        if (cachedTokens.length == 0) //require another reset
+        if (cachedTokens.size() == 0) //require another reset
         {
             currentWallet = null;
             prepare();
         }
-        tokensService.addTokens(cachedTokens);
-        tokensService.requireTokensRefresh();
-        tokens.postValue(tokensService.getAllLiveTokens().toArray(new Token[0]));
+        tokens.postValue(cachedTokens.toArray(new TokenMeta[0]));
+        startBalanceUpdate();
     }
+
+//    private void onTokens(Token[] cachedTokens)
+//    {
+//        if (cachedTokens.length == 0) //require another reset
+//        {
+//            currentWallet = null;
+//            prepare();
+//        }
+//        tokensService.addTokens(cachedTokens);
+//        tokensService.requireTokensRefresh();
+//        tokens.postValue(tokensService.getAllLiveTokens().toArray(new Token[0]));
+//    }
 
     private void onTokenFetchError(Throwable throwable)
     {
@@ -238,15 +257,13 @@ public class WalletViewModel extends BaseViewModel
 
         if (erc721Tokens.length > 0)
         {
-            tokensService.addTokens(erc721Tokens);
-
-            tokens.postValue(erc721Tokens);
+            TokenMeta[] updatedTokens = tokensService.addTokenMetas(erc721Tokens);// .addTokens(erc721Tokens);
 
             //store these tokens
-            updateTokens = addTokenInteract.addERC721(currentWallet, erc721Tokens)
+            updateTokens = addTokenInteract.addERC721(currentWallet, getUpdatedTokens(updatedTokens, erc721Tokens))
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(this::storedTokens, this::onError);
+                    .subscribe(storedTokens -> storedTokens(updatedTokens), this::onError);
         }
 
         progress.postValue(false);
@@ -259,8 +276,10 @@ public class WalletViewModel extends BaseViewModel
         onFetchTokensCompletable();
     }
 
-    private void storedTokens(Token[] tokens)
+    private void storedTokens(TokenMeta[] newTokens)
     {
+        //update meta tokens
+        tokens.postValue(newTokens);
         onFetchTokensCompletable();
     }
 
@@ -274,17 +293,17 @@ public class WalletViewModel extends BaseViewModel
 
     private void receiveNetworkTokens(Token[] receivedTokens)
     {
-        //add these tokens to the display
-        tokens.postValue(receivedTokens);
-        Token[] updatedTokens = tokensService.addTokens(receivedTokens);
+        //add the metas of these tokens to the service
+        //Token[] updatedTokens = tokensService.addTokens(receivedTokens);
+        TokenMeta[] updatedTokens = tokensService.addTokenMetas(receivedTokens);
 
         //now store the updated tokens
         if (updatedTokens.length > 0)
         {
-            addTokenInteract.addERC20(currentWallet, updatedTokens)
+            addTokenInteract.addERC20(currentWallet, getUpdatedTokens(updatedTokens, receivedTokens))
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(this::storedTokens, this::onError).isDisposed();
+                    .subscribe(updatedToken -> storedTokens(updatedTokens), this::onError).isDisposed();
 
             //TODO: Once we start receiving ERC20 tickers check backup requirement if ERC20 received
             //checkBackup();
@@ -341,22 +360,16 @@ public class WalletViewModel extends BaseViewModel
 
     private void checkTokenUpdates()
     {
-        Token t = tokensService.getNextInBalanceUpdateQueue();
+        TokenMeta t = tokensService.getNextInBalanceUpdateQueue();
 
         if (t != null)
         {
-            Log.d("TOKEN", "Updating: " + t.tokenInfo.name + " : " + t.getAddress() + " [" + t.balanceUpdateWeight + "]");
+            //Log.d("TOKEN", "Updating: " + t.tokenInfo.name + " : " + t.getAddress() + " [" + t.balanceUpdateWeight + "]");
             balanceCheckDisposable = fetchTokensInteract.updateDefaultBalance(t, currentWallet)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(this::onTokenUpdate, this::balanceUpdateError, this::checkComplete);
+                    .subscribe(this::onTokenUpdate, this::balanceUpdateError);
         }
-    }
-
-    private void checkComplete()
-    {
-        balanceCheckDisposable = null;
-        checkUIUpdates();
     }
 
     private void balanceUpdateError(Throwable throwable)
@@ -364,25 +377,15 @@ public class WalletViewModel extends BaseViewModel
         balanceCheckDisposable = null;
     }
 
-    private void checkUIUpdates()
+    private void onTokenUpdate(TokenMeta tokenMeta)
     {
-        disposable = Observable.fromCallable(tokensService::getAllTokens)
-                .flatMapIterable(token -> token)
-                .filter(Token::walletUIUpdateRequired)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(tokenUpdate::postValue, this::onError);
-    }
-
-    private void onTokenUpdate(Token token)
-    {
-        if (backupCheckVal == 0 && token != null && token.hasRealValue() && token.isEthereum() && token.ticker != null)
+        if (backupCheckVal == 0 && tokenMeta != null && EthereumNetworkBase.hasRealValue(tokenMeta.chainId) && tokenMeta.isEthereum())
         {
             backupCheckVal = openSeaCheckCounter + 5;
         }
         balanceCheckDisposable = null;
-        if (token == null) return;
-        Token update = tokensService.addToken(token);
+        if (tokenMeta == null) return;
+        TokenMeta update = tokensService.addToken(tokenMeta);
         if (update != null)
         {
             tokenUpdate.postValue(update);
@@ -508,8 +511,8 @@ public class WalletViewModel extends BaseViewModel
 
     private void finishedImport(Token token)
     {
-        tokensService.addToken(token);
-        if (EthereumNetworkRepository.isPriorityToken(token)) tokenUpdate.postValue(token);
+        TokenMeta tm = tokensService.addTokenMeta(token);
+        if (EthereumNetworkRepository.isPriorityToken(token)) tokenUpdate.postValue(tm);
     }
 
     private void onTokenAddError(Throwable throwable)
@@ -583,10 +586,11 @@ public class WalletViewModel extends BaseViewModel
     {
         if (ethereumNetworkRepository.checkTickers())
         {
-            ethereumNetworkRepository.attachTokenTickers(tokensService.getAllLiveTokens().toArray(new Token[0]))
-                    .observeOn(Schedulers.newThread())
-                    .subscribeOn(AndroidSchedulers.mainThread())
-                    .subscribe(tokens::postValue).isDisposed();
+            //TODO: Handle tickers (use meta update)
+//            ethereumNetworkRepository.attachTokenTickers(tokensService.getAllLiveTokens().toArray(new Token[0]))
+//                    .observeOn(Schedulers.newThread())
+//                    .subscribeOn(AndroidSchedulers.mainThread())
+//                    .subscribe().isDisposed();
         }
     }
 
@@ -649,5 +653,28 @@ public class WalletViewModel extends BaseViewModel
     public Wallet getWallet()
     {
         return currentWallet;
+    }
+
+    private Token[] getUpdatedTokens(TokenMeta[] updatedMetas, Token[] fullList)
+    {
+        List<Token> tokensToUpdate = new ArrayList<>();
+        for (TokenMeta tm : updatedMetas)
+        {
+            for (Token t : fullList)
+            {
+                if (t.tokenInfo.chainId == tm.chainId && t.getAddress()
+                        .equalsIgnoreCase(tm.address))
+                {
+                    tokensToUpdate.add(t);
+                    break;
+                }
+            }
+        }
+        return tokensToUpdate.toArray(new Token[0]);
+    }
+
+    public TokensService getTokensService()
+    {
+        return tokensService;
     }
 }

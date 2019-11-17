@@ -20,6 +20,7 @@ import com.alphawallet.app.entity.ERC721Token;
 import com.alphawallet.app.entity.FinishReceiver;
 import com.alphawallet.app.entity.Ticket;
 import com.alphawallet.app.entity.Token;
+import com.alphawallet.app.util.Utils;
 import com.alphawallet.app.viewmodel.TransferTicketViewModel;
 import com.alphawallet.app.viewmodel.TransferTicketViewModelFactory;
 import com.alphawallet.app.widget.ProgressView;
@@ -92,7 +93,7 @@ public class TransferTicketActivity extends BaseActivity implements OnTokenClick
     {
         RecyclerView list = findViewById(R.id.listTickets);
 
-        adapter = new TicketSaleAdapter(this, token, viewModel.getAssetDefinitionService());
+        adapter = new TicketSaleAdapter(this, token, viewModel.getAssetDefinitionService(), viewModel.getTokensService());
         adapter.setTransferTicket(token);
         list.setLayoutManager(new LinearLayoutManager(this));
         list.setAdapter(adapter);
@@ -154,7 +155,7 @@ public class TransferTicketActivity extends BaseActivity implements OnTokenClick
                 idList.addAll(tr.tokenIds);
             }
 
-            String idListStr = token.intArrayToString(idList, false); //list of B32 ID's
+            String idListStr = Utils.intArrayToString(idList, false); //list of B32 ID's
             viewModel.openSellDialog(this, idListStr);
         }
     }

@@ -44,7 +44,14 @@ public class RealmToken extends RealmObject {
     }
 
     public String getAddress() {
-        return address;
+        if (address.contains("-"))
+        {
+            return address.split("-")[0];
+        }
+        else
+        {
+            return address;
+        }
     }
 
     public void setAddress(String address) {

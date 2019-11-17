@@ -3,6 +3,7 @@ package com.alphawallet.app.interact;
 import com.alphawallet.app.entity.ContractType;
 import com.alphawallet.app.entity.Token;
 import com.alphawallet.app.entity.TokenInfo;
+import com.alphawallet.app.entity.TokenMeta;
 import com.alphawallet.app.entity.Wallet;
 import com.alphawallet.app.repository.TokenRepositoryType;
 
@@ -11,6 +12,8 @@ import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AddTokenInteract {
     private final TokenRepositoryType tokenRepository;
@@ -40,8 +43,9 @@ public class AddTokenInteract {
         return tokenRepository.fetchLatestBlockNumber(chainId);
     }
 
-    public Single<Token[]> addERC20(Wallet wallet, Token[] tokens)
+    public Single<Token[]> addERC20(Wallet wallet, Token[] receivedTokens)
     {
-        return tokenRepository.addERC20(wallet, tokens);
+
+        return tokenRepository.addERC20(wallet, receivedTokens);
     }
 }

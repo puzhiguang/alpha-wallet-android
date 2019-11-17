@@ -5,6 +5,7 @@ import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 import android.support.annotation.Nullable;
 
+import com.alphawallet.app.service.TokensService;
 import com.alphawallet.app.ui.TransferTicketDetailActivity;
 import com.alphawallet.app.entity.NetworkInfo;
 import com.alphawallet.app.entity.Token;
@@ -27,6 +28,7 @@ public class TransferTicketViewModel extends BaseViewModel {
     private final GenericWalletInteract genericWalletInteract;
     private final TransferTicketDetailRouter transferTicketDetailRouter;
     private final AssetDefinitionService assetDefinitionService;
+    private final TokensService tokensService;
 
     private final MutableLiveData<NetworkInfo> defaultNetwork = new MutableLiveData<>();
     private final MutableLiveData<Wallet> defaultWallet = new MutableLiveData<>();
@@ -40,12 +42,14 @@ public class TransferTicketViewModel extends BaseViewModel {
             GenericWalletInteract genericWalletInteract,
             FindDefaultNetworkInteract findDefaultNetworkInteract,
             TransferTicketDetailRouter transferTicketDetailRouter,
-            AssetDefinitionService assetDefinitionService) {
+            AssetDefinitionService assetDefinitionService,
+            TokensService tokensService) {
         this.fetchTokensInteract = fetchTokensInteract;
         this.genericWalletInteract = genericWalletInteract;
         this.findDefaultNetworkInteract = findDefaultNetworkInteract;
         this.transferTicketDetailRouter = transferTicketDetailRouter;
         this.assetDefinitionService = assetDefinitionService;
+        this.tokensService = tokensService;
     }
 
     @Override
@@ -110,5 +114,10 @@ public class TransferTicketViewModel extends BaseViewModel {
     public AssetDefinitionService getAssetDefinitionService()
     {
         return assetDefinitionService;
+    }
+
+    public TokensService getTokensService()
+    {
+        return tokensService;
     }
 }

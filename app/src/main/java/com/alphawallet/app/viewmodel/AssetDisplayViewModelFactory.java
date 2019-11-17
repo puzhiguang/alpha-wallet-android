@@ -14,6 +14,7 @@ import com.alphawallet.app.router.SellTicketRouter;
 import com.alphawallet.app.router.TransferTicketRouter;
 import com.alphawallet.app.service.AssetDefinitionService;
 import com.alphawallet.app.service.OpenseaService;
+import com.alphawallet.app.service.TokensService;
 
 /**
  * Created by James on 22/01/2018.
@@ -31,6 +32,7 @@ public class AssetDisplayViewModelFactory implements ViewModelProvider.Factory {
     private final MyAddressRouter myAddressRouter;
     private final AssetDefinitionService assetDefinitionService;
     private final OpenseaService openseaService;
+    private final TokensService tokensService;
 
     public AssetDisplayViewModelFactory(
             FetchTokensInteract fetchTokensInteract,
@@ -42,7 +44,8 @@ public class AssetDisplayViewModelFactory implements ViewModelProvider.Factory {
             SellTicketRouter sellTicketRouter,
             MyAddressRouter myAddressRouter,
             AssetDefinitionService assetDefinitionService,
-            OpenseaService openseaService) {
+            OpenseaService openseaService,
+            TokensService tokensService) {
         this.fetchTokensInteract = fetchTokensInteract;
         this.genericWalletInteract = genericWalletInteract;
         this.findDefaultNetworkInteract = findDefaultNetworkInteract;
@@ -53,11 +56,12 @@ public class AssetDisplayViewModelFactory implements ViewModelProvider.Factory {
         this.myAddressRouter = myAddressRouter;
         this.assetDefinitionService = assetDefinitionService;
         this.openseaService = openseaService;
+        this.tokensService = tokensService;
     }
 
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        return (T) new AssetDisplayViewModel(fetchTokensInteract, genericWalletInteract, signatureGenerateInteract, transferTicketRouter, redeemAssetSelectRouter, findDefaultNetworkInteract, sellTicketRouter, myAddressRouter, assetDefinitionService, openseaService);
+        return (T) new AssetDisplayViewModel(fetchTokensInteract, genericWalletInteract, signatureGenerateInteract, transferTicketRouter, redeemAssetSelectRouter, findDefaultNetworkInteract, sellTicketRouter, myAddressRouter, assetDefinitionService, openseaService, tokensService);
     }
 }

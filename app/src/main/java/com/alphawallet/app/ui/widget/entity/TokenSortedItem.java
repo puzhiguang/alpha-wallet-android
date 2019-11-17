@@ -1,12 +1,13 @@
 package com.alphawallet.app.ui.widget.entity;
 
+import com.alphawallet.app.entity.TokenMeta;
 import com.alphawallet.app.ui.widget.holder.TokenHolder;
 import com.alphawallet.app.entity.Ticket;
 import com.alphawallet.app.entity.Token;
 
-public class TokenSortedItem extends SortedItem<Token> {
+public class TokenSortedItem extends SortedItem<TokenMeta> {
 
-    public TokenSortedItem(Token value, int weight) {
+    public TokenSortedItem(TokenMeta value, int weight) {
         super(TokenHolder.VIEW_TYPE, value, weight);
     }
 
@@ -16,31 +17,13 @@ public class TokenSortedItem extends SortedItem<Token> {
     }
 
     @Override
-    public boolean areContentsTheSame(SortedItem newItem) {
+    public boolean areContentsTheSame(SortedItem newItem)
+    {
         if (viewType == newItem.viewType)
         {
-            Token oldToken = value;
-            Token newToken = (Token) newItem.value;
-
-            if (!oldToken.getAddress().equals(newToken.getAddress())) return false;
-            else if (weight != newItem.weight) return false;
-            else if (!oldToken.getFullBalance().equals(newToken.getFullBalance())) return false;
-            else if (!oldToken.pendingBalance.equals(newToken.pendingBalance)) return false;
-            else if (!oldToken.getFullName().equals(newToken.getFullName())) return false;
-            else if (oldToken.ticker == null && newToken.ticker != null) return false;
-
-            //Had a redeem
-            if (oldToken instanceof Ticket && newToken instanceof Ticket)
-            {
-                Ticket oTick = (Ticket) oldToken;
-                Ticket nTick = (Ticket) newToken;
-
-                return oTick.isMatchedInXML() == nTick.isMatchedInXML();
-            }
-
-            //TODO: balance value gone stale
-
-            return true;
+            TokenMeta oldToken = value;
+            TokenMeta newToken = (TokenMeta) newItem.value;
+            return !oldToken.update || !newToken.update;
         }
         else
         {
@@ -53,17 +36,14 @@ public class TokenSortedItem extends SortedItem<Token> {
     {
         if (viewType == other.viewType)
         {
-            Token oldToken = value;
-            Token newToken = (Token) other.value;
+            TokenMeta oldToken = value;
+            TokenMeta newToken = (TokenMeta) other.value;
 
-            return oldToken.getAddress().equals(newToken.getAddress()) && other.weight == weight;
+            return oldToken.address.equalsIgnoreCase(newToken.address) && oldToken.chainId == newToken.chainId;
         }
         else
         {
             return false;
         }
-
-//        return other.viewType == TokenHolder.VIEW_TYPE
-//                && ((TokenSortedItem) other).value.tokenInfo.address.equalsIgnoreCase(value.tokenInfo.address);
     }
 }

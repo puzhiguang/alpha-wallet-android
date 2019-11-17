@@ -11,6 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
@@ -25,6 +26,7 @@ import com.alphawallet.app.R;
 import com.alphawallet.app.repository.EthereumNetworkRepository;
 
 import org.web3j.crypto.WalletUtils;
+import org.web3j.utils.Numeric;
 
 public class Utils {
 
@@ -246,5 +248,33 @@ public class Utils {
         List<String> strList = new ArrayList<>();
         Collections.addAll(strList, split);
         return strList.toArray(new String[0]);
+    }
+
+    /**
+     * Produce a string CSV of integer IDs given an input list of values
+     * @param idList
+     * @param keepZeros
+     * @return
+     */
+    public static String intArrayToString(List<BigInteger> idList, boolean keepZeros)
+    {
+        if (idList == null) return "";
+        String displayIDs = "";
+        boolean first = true;
+        StringBuilder sb = new StringBuilder();
+        for (BigInteger id : idList)
+        {
+            if (!keepZeros && id.compareTo(BigInteger.ZERO) == 0) continue;
+            if (!first)
+            {
+                sb.append(",");
+            }
+            first = false;
+
+            sb.append(Numeric.toHexStringNoPrefix(id));
+            displayIDs = sb.toString();
+        }
+
+        return displayIDs;
     }
 }

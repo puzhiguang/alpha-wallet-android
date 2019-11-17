@@ -23,7 +23,6 @@ public class BaseViewModel extends ViewModel
 	protected static final MutableLiveData<String> pushToastMutable = new MutableLiveData<>();
 	protected static final MutableLiveData<Integer> successDialogMutable = new MutableLiveData<>();
 	protected static final MutableLiveData<Integer> errorDialogMutable = new MutableLiveData<>();
-	protected static final MutableLiveData<Boolean> refreshTokens = new MutableLiveData<>();
 
 	@Override
 	protected void onCleared()
@@ -65,10 +64,6 @@ public class BaseViewModel extends ViewModel
 
 	public LiveData<Integer> marketQueueErrorDialog() {
 		return errorDialogMutable;
-	}
-
-	public LiveData<Boolean> refreshTokens() {
-		return refreshTokens;
 	}
 
 	protected void onError(Throwable throwable)

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.support.v7.util.SortedList;
 import android.support.v7.widget.AppCompatRadioButton;
 import android.view.ViewGroup;
+
+import com.alphawallet.app.service.TokensService;
 import com.bumptech.glide.Glide;
 import com.alphawallet.app.ui.widget.entity.AssetInstanceSortedItem;
 import com.alphawallet.app.ui.widget.entity.AssetSortedItem;
@@ -55,8 +57,8 @@ public class NonFungibleTokenAdapter extends TokensAdapter {
     private boolean containsScripted = false;
     protected int assetCount;
 
-    public NonFungibleTokenAdapter(OnTokenClickListener tokenClickListener, Token t, AssetDefinitionService service, OpenseaService opensea) {
-        super(tokenClickListener, service);
+    public NonFungibleTokenAdapter(OnTokenClickListener tokenClickListener, Token t, AssetDefinitionService service, TokensService tokensService, OpenseaService opensea) {
+        super(tokenClickListener, service, tokensService);
         assetCount = 0;
         token = t;
         clickThrough = true;
@@ -65,9 +67,9 @@ public class NonFungibleTokenAdapter extends TokensAdapter {
         if (t instanceof ERC721Token) setERC721Tokens(t, null);
     }
 
-    public NonFungibleTokenAdapter(OnTokenClickListener tokenClickListener, Token token, String ticketIds, AssetDefinitionService service, OpenseaService opensea)
+    public NonFungibleTokenAdapter(OnTokenClickListener tokenClickListener, Token token, String ticketIds, AssetDefinitionService service, TokensService tokensService, OpenseaService opensea)
     {
-        super(tokenClickListener, service);
+        super(tokenClickListener, service, tokensService);
         assetCount = 0;
         this.token = token;
         if (token.isERC875()) setTokenRange(token, ticketIds);
@@ -75,17 +77,17 @@ public class NonFungibleTokenAdapter extends TokensAdapter {
         if (token instanceof ERC721Token) setERC721Tokens(token, ticketIds);
     }
 
-    public NonFungibleTokenAdapter(Token token, String displayIds, AssetDefinitionService service)
+    public NonFungibleTokenAdapter(Token token, String displayIds, AssetDefinitionService service, TokensService tokensService)
     {
-        super(null, service);
+        super(null, service, tokensService);
         this.token = token;
         clickThrough = false;
         setTokenRange(token, displayIds);
     }
 
-    public NonFungibleTokenAdapter(Token token, String viewCode, FunctionCallback callback, AssetDefinitionService service)
+    public NonFungibleTokenAdapter(Token token, String viewCode, FunctionCallback callback, AssetDefinitionService service, TokensService tokensService)
     {
-        super(null, service);
+        super(null, service, tokensService);
         functionCallback = callback;
         this.token = token;
         TokenFunctionSortedItem item = new TokenFunctionSortedItem(viewCode, 200);

@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.alphawallet.app.entity.StandardFunctionInterface;
 import com.alphawallet.app.entity.Ticker;
 import com.alphawallet.app.entity.Token;
+import com.alphawallet.app.entity.TokenMeta;
 import com.alphawallet.app.entity.TokenTicker;
 import com.alphawallet.app.entity.Transaction;
 import com.alphawallet.app.entity.Wallet;
@@ -103,9 +104,9 @@ public class Erc20DetailActivity extends BaseActivity implements StandardFunctio
     {
         if (token != null && tokenViewAdapter != null) //might be a delayed return after user closed screen
         {
-            token.ticker = new TokenTicker(ticker, token.getAddress(), null);
-            //token.ticker = new TokenTicker(String.valueOf(token.tokenInfo.chainId), token.getAddress(), ticker.price_usd, ticker.percentChange24h, null);
-            Token[] tokens = {token};
+            TokenMeta displayToken = new TokenMeta(token);
+            TokenMeta[] tokens = {displayToken};
+
             tokenViewAdapter.setTokens(tokens);
             tokenViewAdapter.notifyDataSetChanged();
         }
@@ -132,8 +133,8 @@ public class Erc20DetailActivity extends BaseActivity implements StandardFunctio
                 return false;
             }
         });
-        tokenViewAdapter = new TokensAdapter(this, null, viewModel.getAssetDefinitionService());
-        Token[] tokens = {token};
+        tokenViewAdapter = new TokensAdapter(this, null, viewModel.getAssetDefinitionService(), viewModel.getTokensService());
+        TokenMeta[] tokens = {new TokenMeta(token)};
         tokenViewAdapter.setTokens(tokens);
         tokenView.setAdapter(tokenViewAdapter);
 
@@ -174,8 +175,9 @@ public class Erc20DetailActivity extends BaseActivity implements StandardFunctio
             viewModel.fetchNetworkTransactions(token, HISTORY_LENGTH);
         }
 
+        TokenMeta tokenMeta = new TokenMeta(tokenUpdate);
         token = tokenUpdate;
-        Token[] tokens = {token};
+        TokenMeta[] tokens = {tokenMeta};
         tokenViewAdapter.setTokens(tokens);
         tokenViewAdapter.notifyDataSetChanged();
         txUpdateCounter++;

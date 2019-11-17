@@ -12,11 +12,13 @@ import com.alphawallet.app.entity.ERC721Token;
 import com.alphawallet.app.entity.NetworkInfo;
 import com.alphawallet.app.entity.Token;
 import com.alphawallet.app.entity.Wallet;
+import com.alphawallet.app.service.TokensService;
 import com.alphawallet.app.ui.RedeemAssetSelectActivity;
 import com.alphawallet.app.ui.SellDetailActivity;
 import com.alphawallet.app.ui.TransferTicketDetailActivity;
 import com.alphawallet.app.ui.widget.entity.TicketRangeParcel;
 
+import com.alphawallet.app.util.Utils;
 import com.alphawallet.token.entity.SigReturnType;
 import com.alphawallet.token.entity.XMLDsigDescriptor;
 import com.alphawallet.app.interact.FetchTokensInteract;
@@ -57,6 +59,7 @@ public class AssetDisplayViewModel extends BaseViewModel
     private final MyAddressRouter myAddressRouter;
     private final AssetDefinitionService assetDefinitionService;
     private final OpenseaService openseaService;
+    private final TokensService tokensService;
 
     private Token refreshToken;
 
@@ -78,7 +81,8 @@ public class AssetDisplayViewModel extends BaseViewModel
             SellTicketRouter sellTicketRouter,
             MyAddressRouter myAddressRouter,
             AssetDefinitionService assetDefinitionService,
-            OpenseaService openseaService) {
+            OpenseaService openseaService,
+            TokensService tokensService) {
         this.fetchTokensInteract = fetchTokensInteract;
         this.genericWalletInteract = genericWalletInteract;
         this.findDefaultNetworkInteract = findDefaultNetworkInteract;
@@ -88,6 +92,7 @@ public class AssetDisplayViewModel extends BaseViewModel
         this.myAddressRouter = myAddressRouter;
         this.assetDefinitionService = assetDefinitionService;
         this.openseaService = openseaService;
+        this.tokensService = tokensService;
     }
 
     @Override
@@ -116,6 +121,11 @@ public class AssetDisplayViewModel extends BaseViewModel
     public OpenseaService getOpenseaService()
     {
         return openseaService;
+    }
+
+    public TokensService getTokensService()
+    {
+        return tokensService;
     }
 
     private void fetchCurrentTicketBalance() {
@@ -218,7 +228,7 @@ public class AssetDisplayViewModel extends BaseViewModel
         }
         else
         {
-            intent.putExtra(C.EXTRA_TOKENID_LIST, token.intArrayToString(selection, false));
+            intent.putExtra(C.EXTRA_TOKENID_LIST, Utils.intArrayToString(selection, false));
         }
 
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);

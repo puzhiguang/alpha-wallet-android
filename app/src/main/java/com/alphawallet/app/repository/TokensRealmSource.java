@@ -17,6 +17,8 @@ import com.alphawallet.app.repository.entity.RealmERC721Token;
 import com.alphawallet.app.repository.entity.RealmToken;
 import com.alphawallet.app.repository.entity.RealmTokenTicker;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,6 +38,8 @@ import com.alphawallet.app.entity.opensea.Asset;
 import com.alphawallet.app.entity.opensea.AssetContract;
 import com.alphawallet.app.entity.opensea.Trait;
 import com.alphawallet.app.service.RealmManager;
+import com.alphawallet.app.util.Utils;
+
 import org.web3j.crypto.WalletUtils;
 
 import static com.alphawallet.app.interact.SetupTokensInteract.EXPIRED_CONTRACT;
@@ -174,7 +178,6 @@ public class TokensRealmSource implements TokenLocalSource {
                 realm = realmManager.getRealmInstance(wallet);
                 RealmResults<RealmToken> realmItem = realm.where(RealmToken.class)
                         .equalTo("address", databaseKey(networkInfo.chainId, address))
-                        .equalTo("chainId", networkInfo.chainId)
                         .findAll();
 
                 return convertSingle(realmItem);
@@ -201,26 +204,6 @@ public class TokensRealmSource implements TokenLocalSource {
             catch (Exception e)
             {
                 return new Token[0]; //ensure fetch completes
-            }
-        });
-    }
-
-    @Override
-    public Single<Token[]> fetchAllTokens(NetworkInfo networkInfo, Wallet wallet) {
-        return Single.fromCallable(() -> {
-            Realm realm = null;
-            try {
-                realm = realmManager.getRealmInstance(wallet);
-                RealmResults<RealmToken> realmItems = realm.where(RealmToken.class)
-                        .sort("addedTime", Sort.ASCENDING)
-                        .equalTo("chainId", networkInfo.chainId)
-                        .findAll();
-
-                return convert(realmItems);
-            } finally {
-                if (realm != null) {
-                    realm.close();
-                }
             }
         });
     }
@@ -319,7 +302,7 @@ public class TokensRealmSource implements TokenLocalSource {
             token.tokenInfo.isEnabled = isEnabled;
             realm = realmManager.getRealmInstance(wallet);
             RealmToken realmToken = realm.where(RealmToken.class)
-                    .equalTo("address", token.tokenInfo.address)
+                    .equalTo("address", databaseKey(token))
                     .findFirst();
 
             TransactionsRealmCache.addRealm();
@@ -354,8 +337,7 @@ public class TokensRealmSource implements TokenLocalSource {
         try (Realm realm = realmManager.getRealmInstance(wallet))
         {
             RealmToken realmToken = realm.where(RealmToken.class)
-                    .like("address", address + "*")
-                    .equalTo("chainId", network.chainId)
+                    .equalTo("address", databaseKey(network.chainId, address))
                     .findFirst();
 
             if (realmToken != null)
@@ -424,7 +406,6 @@ public class TokensRealmSource implements TokenLocalSource {
         {
             RealmToken realmToken = realm.where(RealmToken.class)
                     .equalTo("address", databaseKey(token))
-                    .equalTo("chainId", network.chainId)
                     .findFirst();
 
             if (token.hasPositiveBalance() && realmToken == null)
@@ -454,6 +435,53 @@ public class TokensRealmSource implements TokenLocalSource {
     }
 
     @Override
+    public void updateTokenBalance(Wallet wallet, int chainId, String address, List<BigInteger> balanceArray)
+    {
+        try (Realm realm = realmManager.getRealmInstance(wallet))
+        {
+            RealmToken realmToken = realm.where(RealmToken.class)
+                    .equalTo("address", databaseKey(chainId, address))
+                    .findFirst();
+
+            if (realmToken != null)
+            {
+                TransactionsRealmCache.addRealm();
+                realm.beginTransaction();
+                realmToken.setBalance(Utils.intArrayToString(balanceArray, true));
+                realm.commitTransaction();
+                TransactionsRealmCache.subRealm();
+            }
+        }
+    }
+
+    @Override
+    public void updateTokenBalance(Wallet wallet, int chainId, String address, BigDecimal balance)
+    {
+        try (Realm realm = realmManager.getRealmInstance(wallet))
+        {
+            RealmToken realmToken = realm.where(RealmToken.class)
+                    .equalTo("address", databaseKey(chainId, address))
+                    .findFirst();
+
+            if (realmToken != null)
+            {
+                TransactionsRealmCache.addRealm();
+                realm.beginTransaction();
+                if (balance != null)
+                {
+                    realmToken.setBalance(balance.toString());
+                }
+                else
+                {
+                    realmToken.setBalance("0");
+                }
+                realm.commitTransaction();
+                TransactionsRealmCache.subRealm();
+            }
+        }
+    }
+
+    @Override
     public Disposable storeBlockRead(Token token, Wallet wallet)
     {
         return Completable.complete()
@@ -466,7 +494,6 @@ public class TokensRealmSource implements TokenLocalSource {
                         realm = realmManager.getRealmInstance(wallet);
                         RealmToken realmToken = realm.where(RealmToken.class)
                                 .equalTo("address", databaseKey(token))
-                                .equalTo("chainId", token.tokenInfo.chainId)
                                 .findFirst();
 
                         if (realmToken != null)

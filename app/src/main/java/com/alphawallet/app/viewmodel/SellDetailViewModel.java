@@ -19,6 +19,7 @@ import com.alphawallet.app.router.SellDetailRouter;
 import com.alphawallet.app.service.AssetDefinitionService;
 import com.alphawallet.app.service.KeyService;
 import com.alphawallet.app.service.MarketQueueService;
+import com.alphawallet.app.service.TokensService;
 import com.alphawallet.app.ui.SellDetailActivity;
 import com.alphawallet.token.entity.SalesOrderMalformed;
 import com.alphawallet.token.tools.ParseMagicLink;
@@ -44,6 +45,7 @@ public class SellDetailViewModel extends BaseViewModel {
     private final SellDetailRouter sellDetailRouter;
     private final KeyService keyService;
     private final AssetDefinitionService assetDefinitionService;
+    private final TokensService tokensService;
 
     private byte[] linkMessage;
 
@@ -53,7 +55,8 @@ public class SellDetailViewModel extends BaseViewModel {
                         CreateTransactionInteract createTransactionInteract,
                         SellDetailRouter sellDetailRouter,
                         KeyService keyService,
-                        AssetDefinitionService assetDefinitionService) {
+                        AssetDefinitionService assetDefinitionService,
+                        TokensService tokensService) {
         this.findDefaultNetworkInteract = findDefaultNetworkInteract;
         this.genericWalletInteract = genericWalletInteract;
         this.marketQueueService = marketQueueService;
@@ -61,6 +64,7 @@ public class SellDetailViewModel extends BaseViewModel {
         this.sellDetailRouter = sellDetailRouter;
         this.keyService = keyService;
         this.assetDefinitionService = assetDefinitionService;
+        this.tokensService = tokensService;
     }
 
     private void initParser()
@@ -140,6 +144,11 @@ public class SellDetailViewModel extends BaseViewModel {
     public AssetDefinitionService getAssetDefinitionService()
     {
         return assetDefinitionService;
+    }
+
+    public TokensService getTokensService()
+    {
+        return tokensService;
     }
 
     public void getAuthorisation(Activity activity, SignAuthenticationCallback callback)

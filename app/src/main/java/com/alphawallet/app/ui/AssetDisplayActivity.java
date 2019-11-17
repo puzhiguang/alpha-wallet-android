@@ -18,6 +18,7 @@ import com.alphawallet.app.entity.StandardFunctionInterface;
 import com.alphawallet.app.entity.Ticket;
 import com.alphawallet.app.entity.Token;
 import com.alphawallet.app.ui.widget.adapter.NonFungibleTokenAdapter;
+import com.alphawallet.app.util.Utils;
 import com.alphawallet.app.viewmodel.AssetDisplayViewModel;
 import com.alphawallet.app.viewmodel.AssetDisplayViewModelFactory;
 import com.alphawallet.app.widget.AWalletAlertDialog;
@@ -94,7 +95,7 @@ public class AssetDisplayActivity extends BaseActivity implements StandardFuncti
         viewModel.sig().observe(this, this::onSigData);
 
         functionBar = findViewById(R.id.layoutButtons);
-        adapter = new NonFungibleTokenAdapter(functionBar, token, viewModel.getAssetDefinitionService(), viewModel.getOpenseaService());
+        adapter = new NonFungibleTokenAdapter(functionBar, token, viewModel.getAssetDefinitionService(), viewModel.getTokensService(), viewModel.getOpenseaService());
         functionBar.setupFunctions(this, viewModel.getAssetDefinitionService(), token, adapter);
 
         list.setLayoutManager(new LinearLayoutManager(this));
@@ -179,7 +180,7 @@ public class AssetDisplayActivity extends BaseActivity implements StandardFuncti
     @Override
     public void sellTicketRouter(List<BigInteger> selection)
     {
-        viewModel.sellTicketRouter(this, token, token.intArrayToString(selection, false));
+        viewModel.sellTicketRouter(this, token, Utils.intArrayToString(selection, false));
     }
 
     @Override
@@ -208,7 +209,7 @@ public class AssetDisplayActivity extends BaseActivity implements StandardFuncti
         intent.putExtra(TICKET, token);
         intent.putExtra(WALLET, viewModel.defaultWallet().getValue());
         intent.putExtra(C.EXTRA_STATE, function);
-        intent.putExtra(C.EXTRA_TOKEN_ID, token.intArrayToString(adapter.getSelectedTokenIds(selection), true));
+        intent.putExtra(C.EXTRA_TOKEN_ID, Utils.intArrayToString(adapter.getSelectedTokenIds(selection), true));
         intent.setFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
         startActivity(intent);
     }

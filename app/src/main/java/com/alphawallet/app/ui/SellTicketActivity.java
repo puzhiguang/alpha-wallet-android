@@ -20,6 +20,7 @@ import com.alphawallet.app.R;
 import com.alphawallet.app.entity.FinishReceiver;
 import com.alphawallet.app.entity.Ticket;
 import com.alphawallet.app.entity.Token;
+import com.alphawallet.app.util.Utils;
 import com.alphawallet.app.viewmodel.SellTicketModel;
 import com.alphawallet.app.viewmodel.SellTicketModelFactory;
 import com.alphawallet.app.widget.ProgressView;
@@ -105,7 +106,7 @@ public class SellTicketActivity extends BaseActivity implements OnTokenClickList
 
         RecyclerView list = findViewById(R.id.listTickets);
 
-        adapter = new TicketSaleAdapter(this, token, viewModel.getAssetDefinitionService());
+        adapter = new TicketSaleAdapter(this, token, viewModel.getAssetDefinitionService(), viewModel.getTokensService());
         list.setLayoutManager(new LinearLayoutManager(this));
         list.setAdapter(adapter);
     }
@@ -148,7 +149,7 @@ public class SellTicketActivity extends BaseActivity implements OnTokenClickList
             idList.addAll(tr.tokenIds);
         }
         Ticket ticket = (Ticket) viewModel.ticket().getValue();
-        return ticket.intArrayToString(idList, false);
+        return Utils.intArrayToString(idList, false);
     }
 
     private void onMarketPlace() {

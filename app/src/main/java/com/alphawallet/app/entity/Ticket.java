@@ -13,6 +13,7 @@ import com.alphawallet.app.repository.entity.RealmToken;
 import com.alphawallet.app.service.AssetDefinitionService;
 import com.alphawallet.app.ui.BaseActivity;
 import com.alphawallet.app.ui.widget.holder.TokenHolder;
+import com.alphawallet.app.util.Utils;
 import com.alphawallet.app.viewmodel.BaseViewModel;
 import com.alphawallet.app.web3.Web3TokenView;
 
@@ -81,7 +82,7 @@ public class Ticket extends Token implements Parcelable
 
     @Override
     public String getStringBalance() {
-        return intArrayToString(balanceArray, false);
+        return Utils.intArrayToString(balanceArray, false);
     }
 
     @Override
@@ -92,7 +93,7 @@ public class Ticket extends Token implements Parcelable
     @Override
     public String getFullBalance() {
         if (balanceArray == null) return "no tokens";
-        else return intArrayToString(balanceArray, true);
+        else return Utils.intArrayToString(balanceArray, true);
     }
 
     public static final Creator<Ticket> CREATOR = new Creator<Ticket>() {
@@ -133,7 +134,7 @@ public class Ticket extends Token implements Parcelable
             idList.remove(i);
         }
 
-        return intArrayToString(idList, true);
+        return Utils.intArrayToString(idList, true);
     }
 
     @Override
@@ -153,7 +154,7 @@ public class Ticket extends Token implements Parcelable
     @Override
     public void setRealmBalance(RealmToken realmToken)
     {
-        realmToken.setBalance(intArrayToString(balanceArray, true));
+        realmToken.setBalance(Utils.intArrayToString(balanceArray, true));
     }
 
     @Override

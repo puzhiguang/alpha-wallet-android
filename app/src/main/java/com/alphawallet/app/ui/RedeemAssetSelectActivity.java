@@ -107,7 +107,7 @@ public class RedeemAssetSelectActivity extends BaseActivity implements OnTokenCl
 
         RecyclerView list = findViewById(R.id.listTickets);
 
-        adapter = new TicketSaleAdapter(this, token, viewModel.getAssetDefinitionService());
+        adapter = new TicketSaleAdapter(this, token, viewModel.getAssetDefinitionService(), viewModel.getTokensService());
         if (ticketRange != null)
         {
             adapter.setRedeemTicketQuantity(ticketRange.range, token);

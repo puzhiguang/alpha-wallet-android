@@ -7,6 +7,7 @@ import com.alphawallet.app.entity.SubscribeWrapper;
 import com.alphawallet.app.entity.Ticker;
 import com.alphawallet.app.entity.Token;
 import com.alphawallet.app.entity.TokenInfo;
+import com.alphawallet.app.entity.TokenMeta;
 import com.alphawallet.app.entity.TokenTicker;
 import com.alphawallet.app.entity.TransferFromEventResponse;
 import com.alphawallet.app.entity.Wallet;
@@ -47,4 +48,5 @@ public interface TokenRepositoryType {
     Single<String> resolveProxyAddress(TokenInfo tokenInfo);
     Single<ContractType> determineCommonType(TokenInfo tokenInfo);
     Single<Token[]> addERC20(Wallet wallet, Token[] tokens);
+    Single<TokenMeta> fetchActiveTokenBalance(String walletAddress, TokenMeta token);
 }

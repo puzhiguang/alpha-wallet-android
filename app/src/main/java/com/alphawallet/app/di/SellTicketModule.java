@@ -8,6 +8,7 @@ import com.alphawallet.app.repository.TokenRepositoryType;
 import com.alphawallet.app.repository.WalletRepositoryType;
 import com.alphawallet.app.router.SellDetailRouter;
 import com.alphawallet.app.service.AssetDefinitionService;
+import com.alphawallet.app.service.TokensService;
 import com.alphawallet.app.viewmodel.SellTicketModelFactory;
 
 import dagger.Module;
@@ -26,9 +27,10 @@ public class SellTicketModule
             GenericWalletInteract genericWalletInteract,
             FindDefaultNetworkInteract findDefaultNetworkInteract,
             SellDetailRouter sellDetailRouter,
-            AssetDefinitionService assetDefinitionService) {
+            AssetDefinitionService assetDefinitionService,
+            TokensService tokensService) {
         return new SellTicketModelFactory(
-                fetchTokensInteract, genericWalletInteract, findDefaultNetworkInteract, sellDetailRouter, assetDefinitionService);
+                fetchTokensInteract, genericWalletInteract, findDefaultNetworkInteract, sellDetailRouter, assetDefinitionService, tokensService);
     }
 
     @Provides

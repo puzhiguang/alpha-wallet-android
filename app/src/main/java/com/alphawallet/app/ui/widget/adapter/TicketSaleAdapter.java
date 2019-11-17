@@ -5,6 +5,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alphawallet.app.service.TokensService;
 import com.alphawallet.token.entity.TicketRange;
 import com.alphawallet.token.tools.TokenDefinition;
 import com.alphawallet.app.R;
@@ -49,8 +50,8 @@ public class TicketSaleAdapter extends NonFungibleTokenAdapter {
     private QuantitySelectorHolder quantitySelector;
 
     /* Context ctx is used to initialise assetDefinition in the super class */
-    public TicketSaleAdapter(OnTokenClickListener tokenClickListener, Token t, AssetDefinitionService assetService) {
-        super(tokenClickListener, t, assetService, null);
+    public TicketSaleAdapter(OnTokenClickListener tokenClickListener, Token t, AssetDefinitionService assetService, TokensService tokensService) {
+        super(tokenClickListener, t, assetService, tokensService, null);
         onTokenCheckListener = this::onTokenCheck;
         selectedTicketRange = null;
     }

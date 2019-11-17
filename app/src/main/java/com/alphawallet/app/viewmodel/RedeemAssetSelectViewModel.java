@@ -3,6 +3,7 @@ package com.alphawallet.app.viewmodel;
 import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 
+import com.alphawallet.app.service.TokensService;
 import com.alphawallet.app.ui.widget.entity.TicketRangeParcel;
 import com.alphawallet.app.entity.NetworkInfo;
 import com.alphawallet.app.entity.Token;
@@ -24,6 +25,7 @@ public class RedeemAssetSelectViewModel extends BaseViewModel
     private final FindDefaultNetworkInteract findDefaultNetworkInteract;
     private final RedeemSignatureDisplayRouter redeemSignatureDisplayRouter;
     private final AssetDefinitionService assetDefinitionService;
+    private final TokensService tokensService;
 
     private final MutableLiveData<NetworkInfo> defaultNetwork = new MutableLiveData<>();
     private final MutableLiveData<Wallet> defaultWallet = new MutableLiveData<>();
@@ -32,11 +34,13 @@ public class RedeemAssetSelectViewModel extends BaseViewModel
             GenericWalletInteract genericWalletInteract,
             FindDefaultNetworkInteract findDefaultNetworkInteract,
             RedeemSignatureDisplayRouter redeemSignatureDisplayRouter,
-            AssetDefinitionService assetDefinitionService) {
+            AssetDefinitionService assetDefinitionService,
+            TokensService tokensService) {
         this.genericWalletInteract = genericWalletInteract;
         this.findDefaultNetworkInteract = findDefaultNetworkInteract;
         this.redeemSignatureDisplayRouter = redeemSignatureDisplayRouter;
         this.assetDefinitionService = assetDefinitionService;
+        this.tokensService = tokensService;
     }
 
     public void prepare() {
@@ -65,5 +69,10 @@ public class RedeemAssetSelectViewModel extends BaseViewModel
     public AssetDefinitionService getAssetDefinitionService()
     {
         return assetDefinitionService;
+    }
+
+    public TokensService getTokensService()
+    {
+        return tokensService;
     }
 }

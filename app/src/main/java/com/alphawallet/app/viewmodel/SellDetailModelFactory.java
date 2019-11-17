@@ -11,6 +11,7 @@ import com.alphawallet.app.router.SellDetailRouter;
 import com.alphawallet.app.service.AssetDefinitionService;
 import com.alphawallet.app.service.KeyService;
 import com.alphawallet.app.service.MarketQueueService;
+import com.alphawallet.app.service.TokensService;
 
 /**
  * Created by James on 21/02/2018.
@@ -25,6 +26,7 @@ public class SellDetailModelFactory implements ViewModelProvider.Factory {
     private SellDetailRouter sellDetailRouter;
     private KeyService keyService;
     private AssetDefinitionService assetDefinitionService;
+    private TokensService tokensService;
 
     public SellDetailModelFactory(FindDefaultNetworkInteract findDefaultNetworkInteract,
                                   GenericWalletInteract genericWalletInteract,
@@ -32,7 +34,8 @@ public class SellDetailModelFactory implements ViewModelProvider.Factory {
                                   CreateTransactionInteract createTransactionInteract,
                                   SellDetailRouter sellDetailRouter,
                                   KeyService keyService,
-                                  AssetDefinitionService assetDefinitionService) {
+                                  AssetDefinitionService assetDefinitionService,
+                                  TokensService tokensService) {
         this.findDefaultNetworkInteract = findDefaultNetworkInteract;
         this.genericWalletInteract = genericWalletInteract;
         this.marketQueueService = marketQueueService;
@@ -40,12 +43,13 @@ public class SellDetailModelFactory implements ViewModelProvider.Factory {
         this.sellDetailRouter = sellDetailRouter;
         this.keyService = keyService;
         this.assetDefinitionService = assetDefinitionService;
+        this.tokensService = tokensService;
     }
 
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        return (T) new SellDetailViewModel(findDefaultNetworkInteract, genericWalletInteract, marketQueueService, createTransactionInteract, sellDetailRouter, keyService, assetDefinitionService);
+        return (T) new SellDetailViewModel(findDefaultNetworkInteract, genericWalletInteract, marketQueueService, createTransactionInteract, sellDetailRouter, keyService, assetDefinitionService, tokensService);
     }
 }
 

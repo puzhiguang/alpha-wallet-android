@@ -23,6 +23,7 @@ import com.alphawallet.app.entity.ContractResult;
 import com.alphawallet.app.entity.ErrorEnvelope;
 import com.alphawallet.app.entity.Token;
 import com.alphawallet.app.entity.TokenInterface;
+import com.alphawallet.app.entity.TokenMeta;
 import com.alphawallet.app.entity.TokensReceiver;
 import com.alphawallet.app.entity.Wallet;
 import com.alphawallet.app.repository.EthereumNetworkRepository;
@@ -98,12 +99,11 @@ public class WalletFragment extends Fragment implements OnTokenClickListener, Vi
         viewModel.total().observe(this, this::onTotal);
         viewModel.queueProgress().observe(this, progressView::updateProgress);
         viewModel.currentWalletBalance().observe(this, this::onBalanceChanged);
-        viewModel.refreshTokens().observe(this, this::refreshTokens);
         viewModel.tokenUpdate().observe(this, this::onToken);
         viewModel.tokensReady().observe(this, this::tokensReady);
         viewModel.backupEvent().observe(this, this::backupEvent);
 
-        adapter = new TokensAdapter(getActivity(),this, viewModel.getAssetDefinitionService());
+        adapter = new TokensAdapter(getActivity(),this, viewModel.getAssetDefinitionService(), viewModel.getTokensService());
         adapter.setHasStableIds(true);
         list.setLayoutManager(new LinearLayoutManager(getContext()));
         list.setAdapter(adapter);
@@ -126,7 +126,6 @@ public class WalletFragment extends Fragment implements OnTokenClickListener, Vi
 
     private void refreshList()
     {
-        adapter.setClear();
         viewModel.reloadTokens();
     }
 
@@ -147,7 +146,7 @@ public class WalletFragment extends Fragment implements OnTokenClickListener, Vi
         viewModel.setVisibility(false);
     }
 
-    private void onToken(Token token)
+    private void onToken(TokenMeta token)
     {
         adapter.updateToken(token, false);
     }
@@ -239,7 +238,7 @@ public class WalletFragment extends Fragment implements OnTokenClickListener, Vi
         viewModel.prepare();
     }
 
-    private void onTokens(Token[] tokens)
+    private void onTokens(TokenMeta[] tokens)
     {
         if (tokens != null)
         {
@@ -320,16 +319,6 @@ public class WalletFragment extends Fragment implements OnTokenClickListener, Vi
 //            actionBar.setTitle("$" + balance.get(C.USD_SYMBOL));
 //            actionBar.setSubtitle(balance.get(networkInfo.symbol) + " " + networkInfo.symbol);
 //        }
-    }
-
-    /**
-     * This is triggered by transaction view after we have found new tokens by scanning the transaction history
-     * @param aBoolean - dummy param
-     */
-    private void refreshTokens(Boolean aBoolean)
-    {
-        adapter.clear();
-        viewModel.resetAndFetchTokens();
     }
 
     private void tokensReady(Boolean dummy)

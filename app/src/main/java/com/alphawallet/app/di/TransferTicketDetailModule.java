@@ -13,6 +13,7 @@ import com.alphawallet.app.router.TransferTicketDetailRouter;
 import com.alphawallet.app.service.AssetDefinitionService;
 import com.alphawallet.app.service.GasService;
 import com.alphawallet.app.service.KeyService;
+import com.alphawallet.app.service.TokensService;
 import com.alphawallet.app.viewmodel.TransferTicketDetailViewModelFactory;
 
 import dagger.Module;
@@ -36,10 +37,11 @@ public class TransferTicketDetailModule {
             AssetDefinitionService assetDefinitionService,
             GasService gasService,
             ConfirmationRouter confirmationRouter,
-            ENSInteract ensInteract) {
+            ENSInteract ensInteract,
+            TokensService tokensService) {
         return new TransferTicketDetailViewModelFactory(
                 genericWalletInteract, keyService, createTransactionInteract, transferTicketDetailRouter, fetchTransactionsInteract,
-                assetDisplayRouter, assetDefinitionService, gasService, confirmationRouter, ensInteract);
+                assetDisplayRouter, assetDefinitionService, gasService, confirmationRouter, ensInteract, tokensService);
     }
 
     @Provides

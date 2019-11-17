@@ -13,6 +13,7 @@ import com.alphawallet.app.router.TransferTicketDetailRouter;
 import com.alphawallet.app.service.AssetDefinitionService;
 import com.alphawallet.app.service.GasService;
 import com.alphawallet.app.service.KeyService;
+import com.alphawallet.app.service.TokensService;
 
 /**
  * Created by James on 21/02/2018.
@@ -30,6 +31,7 @@ public class TransferTicketDetailViewModelFactory implements ViewModelProvider.F
     private GasService gasService;
     private ConfirmationRouter confirmationRouter;
     private ENSInteract ensInteract;
+    private TokensService tokensService;
 
 
     public TransferTicketDetailViewModelFactory(GenericWalletInteract genericWalletInteract,
@@ -41,7 +43,8 @@ public class TransferTicketDetailViewModelFactory implements ViewModelProvider.F
                                                 AssetDefinitionService assetDefinitionService,
                                                 GasService gasService,
                                                 ConfirmationRouter confirmationRouter,
-                                                ENSInteract ensInteract) {
+                                                ENSInteract ensInteract,
+                                                TokensService tokensService) {
         this.genericWalletInteract = genericWalletInteract;
         this.keyService = keyService;
         this.createTransactionInteract = createTransactionInteract;
@@ -52,13 +55,14 @@ public class TransferTicketDetailViewModelFactory implements ViewModelProvider.F
         this.gasService = gasService;
         this.confirmationRouter = confirmationRouter;
         this.ensInteract = ensInteract;
+        this.tokensService = tokensService;
     }
 
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         return (T) new TransferTicketDetailViewModel(genericWalletInteract, keyService, createTransactionInteract, transferTicketDetailRouter, fetchTransactionsInteract,
-                                                     assetDisplayRouter, assetDefinitionService, gasService, confirmationRouter, ensInteract);
+                                                     assetDisplayRouter, assetDefinitionService, gasService, confirmationRouter, ensInteract, tokensService);
     }
 }
 

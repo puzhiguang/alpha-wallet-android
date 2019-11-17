@@ -457,6 +457,11 @@ public abstract class EthereumNetworkBase implements EthereumNetworkRepositoryTy
         else return 0;
     }
 
+    public static int getPriorityOverride(ContractType type, String address, int chainId)
+    {
+        if (type == ContractType.ETHEREUM) return chainId + 1;
+        else return 0;
+    }
 
     private Ticker updateTickers(Map<Integer, Ticker> newTickers)
     {

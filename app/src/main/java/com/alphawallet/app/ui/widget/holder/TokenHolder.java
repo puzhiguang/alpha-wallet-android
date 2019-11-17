@@ -19,7 +19,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.alphawallet.app.entity.TokenMeta;
 import com.alphawallet.app.repository.EthereumNetworkRepository;
+import com.alphawallet.app.service.TokensService;
 import com.alphawallet.app.util.Utils;
 
 import com.alphawallet.app.R;
@@ -31,9 +33,12 @@ import com.alphawallet.app.ui.widget.OnTokenClickListener;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
 import static com.alphawallet.app.ui.ImportTokenActivity.getUsdString;
 
-public class TokenHolder extends BinderViewHolder<Token> implements View.OnClickListener, View.OnLongClickListener {
+public class TokenHolder extends BinderViewHolder<TokenMeta> implements View.OnClickListener, View.OnLongClickListener {
 
     public static final int VIEW_TYPE = 1005;
     public static final String EMPTY_BALANCE = "\u2014\u2014";
@@ -56,6 +61,7 @@ public class TokenHolder extends BinderViewHolder<Token> implements View.OnClick
     public final View contractSeparator;
     public final LinearLayout layoutValueDetails;
     private final AssetDefinitionService assetDefinition; //need to cache this locally, unless we cache every string we need in the constructor
+    private final TokensService tokensService;
     private final TextView blockchain;
     private final TextView pendingText;
     private final RelativeLayout tokenLayout;
@@ -65,7 +71,7 @@ public class TokenHolder extends BinderViewHolder<Token> implements View.OnClick
     public Token token;
     private OnTokenClickListener onTokenClickListener;
 
-    public TokenHolder(int resId, ViewGroup parent, AssetDefinitionService assetService)
+    public TokenHolder(int resId, ViewGroup parent, AssetDefinitionService assetService, TokensService tokensSvs)
     {
         super(resId, parent);
 
@@ -90,22 +96,18 @@ public class TokenHolder extends BinderViewHolder<Token> implements View.OnClick
         pendingText = findViewById(R.id.balance_eth_pending);
         tokenLayout = findViewById(R.id.token_layout);
         extendedInfo = findViewById(R.id.layout_extended_info);
+        tokensService = tokensSvs;
         itemView.setOnClickListener(this);
         assetDefinition = assetService;
     }
 
     @Override
-    public void bind(@Nullable Token data, @NonNull Bundle addition) {
-        this.token = data;
-//        if (! data.isERC20())
-//        {
-//            // TODO: apply styles for none ERC20 contracts
-//            contractType.setVisibility(View.GONE);
-//            contractSeparator.setVisibility(View.GONE);
-//        }
-
+    public void bind(@Nullable TokenMeta data, @NonNull Bundle addition)
+    {
         try
         {
+            token = tokensService.tokenMetaToToken(data);
+
             symbolAux.setVisibility(View.GONE);
             tokenLayout.setBackgroundResource(R.drawable.background_marketplace_event);
             blockchain.setText(getString(R.string.blockchain, token.getNetworkName()));
@@ -115,8 +117,8 @@ public class TokenHolder extends BinderViewHolder<Token> implements View.OnClick
             issuer.setText(displayTxt);
             String symbolStr = token.tokenInfo.symbol != null ? token.tokenInfo.symbol.toUpperCase() : "";
             symbol.setText(TextUtils.isEmpty(token.tokenInfo.name)
-                        ? symbolStr
-                        : token.getFullName());
+                           ? symbolStr
+                           : token.getFullName());
 
             animateTextWhileWaiting();
             token.setupContent(this, assetDefinition);
@@ -139,20 +141,6 @@ public class TokenHolder extends BinderViewHolder<Token> implements View.OnClick
         {
             pendingText.setText("");
         }
-    }
-
-    private void setIncompleteData(int qty) {
-        textIncomplete.setVisibility(View.VISIBLE);
-        if (qty > 0) {
-            textIncomplete.setText(getContext().getString(R.string.status_incomplete_data_with_qty, String.valueOf(qty)));
-        } else {
-            textIncomplete.setVisibility(View.GONE);
-        }
-    }
-
-    private void hideStatusBlocks() {
-        textIncomplete.setVisibility(View.GONE);
-        textPending.setVisibility(View.GONE);
     }
 
     public void fillCurrency(BigDecimal ethBalance, TokenTicker ticker) {
